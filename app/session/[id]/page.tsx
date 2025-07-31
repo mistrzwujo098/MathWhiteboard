@@ -1,5 +1,8 @@
 'use client'
 
+import { safeRender } from '@/utils/debug'
+import { sanitizeSessionData, sanitizeProfileData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -62,7 +65,10 @@ export default function SessionPage() {
         .single()
 
       if (sessionError) throw sessionError
-      setSession(sessionData)
+      
+      const sanitizedSession = sanitizeSessionData(sessionData)
+      console.log('Sanitized session data:', sanitizedSession)
+      setSession(sanitizedSession)
       setIsTeacher(sessionData.owner_id === user.id)
 
       // Join session as participant
@@ -114,7 +120,7 @@ export default function SessionPage() {
         // Merge the data
         const merged = participantsData.map(participant => ({
           ...participant,
-          profiles: profilesData.find(p => p.id === participant.user_id) || null
+          profiles: sanitizeProfileData(profilesData.find(p => p.id === participant.user_id)) || null
         }))
         setParticipants(merged)
       } else {

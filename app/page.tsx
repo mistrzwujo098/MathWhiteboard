@@ -1,5 +1,8 @@
 'use client'
 
+import { safeRender } from '@/utils/debug'
+import { sanitizeSessionData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -155,7 +158,8 @@ function MySessions() {
         .limit(5)
 
       if (error) throw error
-      setSessions(data || [])
+      const sanitizedSessions = (data || []).map(sanitizeSessionData)
+      setSessions(sanitizedSessions)
     } catch (error: any) {
       toast.error('Failed to load sessions')
     } finally {
@@ -180,9 +184,9 @@ function MySessions() {
           onClick={() => router.push(`/session/${session.id}`)}
         >
           <div>
-            <h3 className="font-medium">{session.name}</h3>
+            <h3 className="font-medium">{safeRender(session.name, 'Untitled')}</h3>
             <p className="text-sm text-gray-500">
-              Created {new Date(session.created_at).toLocaleDateString()}
+              Created {session.created_at ? new Date(session.created_at).toLocaleDateString() : 'Unknown'}
             </p>
           </div>
           <button className="text-math-primary hover:text-blue-700">

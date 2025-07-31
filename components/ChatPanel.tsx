@@ -1,5 +1,7 @@
 'use client'
 
+import { sanitizeMessageData, sanitizeProfileData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from '@supabase/supabase-js'
@@ -58,15 +60,15 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
       if (!profilesError && profilesData) {
         // Merge the data
         const merged = messagesData.map(message => ({
-          ...message,
-          profiles: profilesData.find(p => p.id === message.user_id) || null
+          ...sanitizeMessageData(message),
+          profiles: sanitizeProfileData(profilesData.find(p => p.id === message.user_id)) || null
         }))
         setMessages(merged)
       } else {
-        setMessages(messagesData)
+        setMessages(messagesData.map(sanitizeMessageData))
       }
     } else {
-      setMessages(messagesData)
+      setMessages(messagesData.map(sanitizeMessageData))
     }
     setLoading(false)
   }
