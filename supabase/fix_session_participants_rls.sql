@@ -34,7 +34,7 @@ FOR INSERT WITH CHECK (
   AND EXISTS (
     SELECT 1 FROM sessions s
     WHERE s.id = session_id
-    AND s.status = 'active'
+    AND s.is_active = true
   )
 );
 
