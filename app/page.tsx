@@ -1,5 +1,7 @@
 'use client'
 
+import { sanitizeSessionData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -147,15 +149,16 @@ function MySessions() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      // Fetch sessions - RLS policies will automatically filter based on user access
       const { data, error } = await supabase
         .from('sessions')
         .select('*')
-        .or(`owner_id.eq.${user.id},id.in.(select session_id from session_participants where user_id = '${user.id}')`)
         .order('created_at', { ascending: false })
         .limit(5)
 
       if (error) throw error
-      setSessions(data || [])
+      const sanitizedSessions = (data || []).map(sanitizeSessionData)
+      setSessions(sanitizedSessions)
     } catch (error: any) {
       toast.error('Failed to load sessions')
     } finally {
@@ -180,9 +183,9 @@ function MySessions() {
           onClick={() => router.push(`/session/${session.id}`)}
         >
           <div>
-            <h3 className="font-medium">{session.name}</h3>
+            <h3 className="font-medium">{session.name || 'Untitled'}</h3>
             <p className="text-sm text-gray-500">
-              Created {new Date(session.created_at).toLocaleDateString()}
+              Created {session.created_at ? new Date(session.created_at).toLocaleDateString() : 'Unknown'}
             </p>
           </div>
           <button className="text-math-primary hover:text-blue-700">

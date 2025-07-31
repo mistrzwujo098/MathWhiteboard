@@ -6,24 +6,24 @@ import katex from 'katex'
 import { v4 as uuidv4 } from 'uuid'
 import toast from 'react-hot-toast'
 
+
 interface CanvasWhiteboardProps {
   sessionId: string
   currentTool: string
   onUpdate: (data: any) => void
   isTeacher: boolean
-  settings: any
 }
 
 interface FabricEvent {
-  e: Event
-  target?: fabric.Object
-  path?: fabric.Path
+  e: any
+  target?: any
+  path?: any
 }
 
 export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
-  ({ sessionId, currentTool, onUpdate, isTeacher, settings }, ref) => {
+  ({ sessionId, currentTool, onUpdate, isTeacher }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
+    const fabricCanvasRef = useRef<any>(null)
     const [isDrawing, setIsDrawing] = useState(false)
     const [color, setColor] = useState('#000000')
     const [brushWidth, setBrushWidth] = useState(2)
@@ -35,13 +35,15 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
 
         switch (data.type) {
           case 'add':
-            fabric.util.enlivenObjects([data.object], (objects: fabric.Object[]) => {
-              objects.forEach((obj) => {
-                obj.set({ id: data.id } as any)
+            // In Fabric.js v5, enlivenObjects is a standalone function
+            const klass = (fabric as any)[data.object.type]
+            if (klass && klass.fromObject) {
+              klass.fromObject(data.object, (obj: any) => {
+                obj.set({ id: data.id })
                 fabricCanvasRef.current!.add(obj)
+                fabricCanvasRef.current!.renderAll()
               })
-              fabricCanvasRef.current!.renderAll()
-            }, 'fabric')
+            }
             break
           case 'modify':
             const obj = fabricCanvasRef.current.getObjects().find((o: any) => o.id === data.id)
@@ -63,46 +65,40 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       },
       insertLatex: (latex: string) => {
         try {
-          const html = katex.renderToString(latex, { throwOnError: false })
-          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100">
-            <foreignObject width="100%" height="100%">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 20px;">
-                ${html}
-              </div>
-            </foreignObject>
-          </svg>`
+          // For now, just create a text object with the LaTeX string
+          const text = new (fabric as any).Text(latex, {
+            id: uuidv4(),
+            left: 100,
+            top: 100,
+            fontSize: 24,
+            fontFamily: 'Courier New'
+          })
           
-          fabric.Image.fromURL(`data:image/svg+xml;base64,${btoa(svg)}`, (img) => {
-            img.set({
-              id: uuidv4(),
-              left: 100,
-              top: 100,
-              selectable: true,
-            } as any)
-            fabricCanvasRef.current!.add(img)
-            fabricCanvasRef.current!.setActiveObject(img)
-            fabricCanvasRef.current!.renderAll()
+          if (fabricCanvasRef.current) {
+            fabricCanvasRef.current.add(text)
+            (fabricCanvasRef.current as any).setActiveObject(text)
+            fabricCanvasRef.current.renderAll()
             
             onUpdate({
               type: 'add',
-              id: img.get('id'),
-              object: img.toObject()
+              id: text.get('id'),
+              object: text.toObject()
             })
-          })
+          }
         } catch (error) {
           toast.error('Failed to render LaTeX')
         }
       },
       insertGraph: (graphData: any) => {
         // Graph insertion handled by GraphModal component
-        const img = new fabric.Image(graphData.imageElement, {
+        const img = new (fabric as any).Image(graphData.imageElement, {
           id: uuidv4(),
           left: 50,
           top: 50,
           selectable: true,
-        } as any)
+        })
         fabricCanvasRef.current!.add(img)
-        fabricCanvasRef.current!.setActiveObject(img)
+        (fabricCanvasRef.current as any).setActiveObject(img)
         fabricCanvasRef.current!.renderAll()
         
         onUpdate({
@@ -188,9 +184,9 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       // Canvas events
       canvas.on('object:added', (e: FabricEvent) => {
         if (!e.target || !isDrawing) return
-        const obj = e.target
+        const obj = e.target as any
         if (!obj.get('id')) {
-          obj.set({ id: uuidv4() } as any)
+          obj.set({ id: uuidv4() })
           onUpdate({
             type: 'add',
             id: obj.get('id'),
@@ -201,7 +197,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
 
       canvas.on('object:modified', (e: FabricEvent) => {
         if (!e.target) return
-        const obj = e.target
+        const obj = e.target as any
         onUpdate({
           type: 'modify',
           id: obj.get('id'),
@@ -209,9 +205,9 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         })
       })
 
-      canvas.on('path:created', (e: FabricEvent) => {
+      canvas.on('path:created', (e: any) => {
         if (!e.path) return
-        e.path.set({ id: uuidv4() } as any)
+        e.path.set({ id: uuidv4() })
         onUpdate({
           type: 'add',
           id: e.path.get('id'),
@@ -222,7 +218,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       // Handle window resize
       const handleResize = () => {
         if (canvasRef.current?.parentElement) {
-          canvas.setDimensions({
+          (canvas as any).setDimensions({
             width: canvasRef.current.parentElement.clientWidth,
             height: canvasRef.current.parentElement.clientHeight
           })
@@ -286,16 +282,16 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       }
     }
 
-    const handleTextTool = (canvas: fabric.Canvas) => {
-      canvas.on('mouse:down', (opt: FabricEvent) => {
+    const handleTextTool = (canvas: any) => {
+      canvas.on('mouse:down', (opt: any) => {
         const pointer = canvas.getPointer(opt.e)
-        const text = new fabric.IText('Click to edit', {
+        const text = new (fabric as any).IText('Click to edit', {
           id: uuidv4(),
           left: pointer.x,
           top: pointer.y,
           fontSize: fontSize,
           fill: color,
-        } as any)
+        })
         canvas.add(text)
         canvas.setActiveObject(text)
         text.enterEditing()
@@ -303,15 +299,15 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       })
     }
 
-    const handleLineTool = (canvas: fabric.Canvas) => {
-      let line: fabric.Line | null = null
+    const handleLineTool = (canvas: any) => {
+      let line: any = null
       let isDrawing = false
 
-      canvas.on('mouse:down', (opt: FabricEvent) => {
+      canvas.on('mouse:down', (opt: any) => {
         isDrawing = true
         const pointer = canvas.getPointer(opt.e)
         const points = [pointer.x, pointer.y, pointer.x, pointer.y]
-        line = new fabric.Line(points, {
+        line = new (fabric as any).Line(points, {
           id: uuidv4(),
           strokeWidth: brushWidth,
           stroke: color,
@@ -334,8 +330,8 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       })
     }
 
-    const handleRectangleTool = (canvas: fabric.Canvas) => {
-      let rect: fabric.Rect | null = null
+    const handleRectangleTool = (canvas: any) => {
+      let rect: any = null
       let isDrawing = false
       let startX = 0
       let startY = 0
@@ -345,7 +341,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
         startY = pointer.y
-        rect = new fabric.Rect({
+        rect = new (fabric as any).Rect({
           id: uuidv4(),
           left: startX,
           top: startY,
@@ -378,8 +374,8 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       })
     }
 
-    const handleCircleTool = (canvas: fabric.Canvas) => {
-      let circle: fabric.Circle | null = null
+    const handleCircleTool = (canvas: any) => {
+      let circle: any = null
       let isDrawing = false
       let startX = 0
       let startY = 0
@@ -389,7 +385,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
         startY = pointer.y
-        circle = new fabric.Circle({
+        circle = new (fabric as any).Circle({
           id: uuidv4(),
           left: startX,
           top: startY,
@@ -421,8 +417,8 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       })
     }
 
-    const handleTriangleTool = (canvas: fabric.Canvas) => {
-      let triangle: fabric.Triangle | null = null
+    const handleTriangleTool = (canvas: any) => {
+      let triangle: any = null
       let isDrawing = false
       let startX = 0
       let startY = 0
@@ -432,7 +428,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
         startY = pointer.y
-        triangle = new fabric.Triangle({
+        triangle = new (fabric as any).Triangle({
           id: uuidv4(),
           left: startX,
           top: startY,

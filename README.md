@@ -1,91 +1,104 @@
 # MathWhiteboard
 
-A collaborative whiteboard application for online math tutoring with real-time collaboration, LaTeX support, and function graphing.
+A comprehensive mathematical whiteboard solution with both a Next.js application and a reusable TypeScript library.
 
-## Features
+## 📦 Project Structure
 
-- 🎨 **Real-time Collaborative Drawing** - Multiple users can draw simultaneously
-- 📐 **Math-Optimized Tools** - LaTeX equation rendering, function graphing, geometric shapes
-- 👥 **User Roles** - Teacher and student roles with permission management
-- 💬 **Built-in Chat** - Real-time messaging during sessions
-- 📹 **Video Calling** - Peer-to-peer video/audio communication
-- 📊 **Export Options** - Save whiteboards as PNG or PDF
-- 🔒 **Secure Sessions** - Password-protected sessions with authentication
+This repository contains two main components:
 
-## Tech Stack
+### 1. **MathWhiteboard App** (Root)
+A full-featured collaborative whiteboard application built with Next.js 14, featuring:
+- 🎨 Real-time collaborative drawing
+- 📐 Math-optimized tools (LaTeX, graphing)
+- 👥 User roles and permissions
+- 💬 Built-in chat
+- 📹 Video calling
+- 🔒 Secure sessions with authentication
 
-- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
-- **Canvas**: Fabric.js for drawing functionality
-- **Math Rendering**: KaTeX for LaTeX equations
-- **Graphing**: Chart.js with math.js for function evaluation
-- **Real-time**: Supabase Realtime for collaboration
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Video**: PeerJS for WebRTC
-- **Deployment**: Vercel
+### 2. **MathWhiteboard Core Library** (`/lib/math-whiteboard`)
+A TypeScript library providing the core whiteboard functionality:
+- 🎯 Full TypeScript support with extended Fabric.js types
+- 📐 Mathematical equation support
+- 🎨 Drawing tools with customization
+- 💾 Serialization capabilities
+- ⚛️ React component integration
 
-## Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### Using the Next.js Application
 
-- Node.js 18+ and npm
-- Supabase account
-- Vercel account (for deployment)
-
-### Environment Variables
-
-Create a `.env.local` file with:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### Installation
-
-1. Clone the repository:
 ```bash
+# Clone the repository
 git clone https://github.com/mistrzwujo098/MathWhiteboard.git
 cd MathWhiteboard
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
-```
 
-3. Run the development server:
-```bash
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your Supabase credentials
+
+# Run development server
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000)
+### Using the Core Library
 
-## Deployment
+The core library can be used independently in any TypeScript/JavaScript project:
 
-### Deploy to Vercel
+```bash
+# Navigate to library
+cd lib/math-whiteboard
 
-1. Push your code to GitHub
-2. Connect your GitHub repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+# Install dependencies
+npm install
 
-### Supabase Setup
+# Build the library
+npm run build
+```
 
-The database schema is automatically created when you run the migrations in the Supabase project.
+Example usage:
+```typescript
+import { MathWhiteboard } from '@mathwhiteboard/core';
 
-## Usage
+const whiteboard = new MathWhiteboard(canvasElement);
+whiteboard.addText('Hello Math!', { left: 100, top: 100 });
+```
 
-1. **Create Account**: Sign up with email or Google
-2. **Create Session**: Teachers can create new whiteboard sessions
-3. **Share Link**: Copy and share the session link with students
-4. **Collaborate**: Draw, add equations, chat, and video call in real-time
-5. **Export**: Save your work as PNG or PDF
+## 🛠 Tech Stack
 
-## Contributing
+### Application
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Canvas**: Fabric.js
+- **Math Rendering**: KaTeX
+- **Real-time**: Supabase Realtime
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Video**: PeerJS for WebRTC
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Core Library
+- **Language**: TypeScript
+- **Canvas**: Fabric.js
+- **Framework**: React (optional)
+- **Build**: TypeScript Compiler
 
-## License
+## 📝 Documentation
 
-This project is licensed under the MIT License.
+- [Application Documentation](./docs/app.md)
+- [Core Library Documentation](./lib/math-whiteboard/README.md)
+- [API Reference](./docs/api.md)
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Fabric.js](http://fabricjs.com/) for canvas functionality
+- Math rendering powered by [KaTeX](https://katex.org/)
+- Real-time features by [Supabase](https://supabase.com/)

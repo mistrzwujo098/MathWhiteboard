@@ -15,7 +15,9 @@ export function ParticipantsList({ participants }: ParticipantsListProps) {
             className="w-8 h-8 rounded-full bg-math-primary text-white flex items-center justify-center text-xs font-medium border-2 border-white"
             title={participant.profiles?.display_name || 'Unknown'}
           >
-            {(participant.profiles?.display_name || 'U').charAt(0).toUpperCase()}
+            {(typeof participant.profiles?.display_name === 'string' 
+              ? participant.profiles.display_name 
+              : 'U').charAt(0).toUpperCase()}
           </div>
         ))}
         {participants.length > 5 && (

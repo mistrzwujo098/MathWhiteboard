@@ -36,7 +36,8 @@
 }
 
 /* KaTeX styles */
-@import url('https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css');
+/* Temporarily disabled - may cause React error #185 */
+/* @import url('https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css'); */
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

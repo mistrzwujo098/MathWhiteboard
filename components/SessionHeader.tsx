@@ -1,5 +1,6 @@
 'use client'
 
+
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -12,7 +13,9 @@ interface SessionHeaderProps {
 export function SessionHeader({ session, isTeacher, onLeave }: SessionHeaderProps) {
   const [showShareModal, setShowShareModal] = useState(false)
 
-  const shareLink = `${window.location.origin}/session/${session.id}`
+  const shareLink = typeof window !== 'undefined' && session?.id 
+    ? `${window.location.origin}/session/${session.id}`
+    : ''
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareLink)
@@ -25,7 +28,7 @@ export function SessionHeader({ session, isTeacher, onLeave }: SessionHeaderProp
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold">{session.name}</h1>
+            <h1 className="text-xl font-semibold">{session?.name || 'Untitled Session'}</h1>
             <span className="px-3 py-1 text-sm bg-math-primary/10 text-math-primary rounded-full">
               {isTeacher ? 'Teacher' : 'Student'}
             </span>
@@ -77,7 +80,7 @@ export function SessionHeader({ session, isTeacher, onLeave }: SessionHeaderProp
                 </div>
               </div>
               
-              {session.password && (
+              {!!session?.password && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     <strong>Password Protected:</strong> Share the password separately

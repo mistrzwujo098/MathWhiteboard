@@ -1,5 +1,7 @@
 'use client'
 
+import { sanitizeSessionData, sanitizeProfileData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -62,7 +64,10 @@ export default function SessionPage() {
         .single()
 
       if (sessionError) throw sessionError
-      setSession(sessionData)
+      
+      const sanitizedSession = sanitizeSessionData(sessionData)
+      console.log('Sanitized session data:', sanitizedSession)
+      setSession(sanitizedSession)
       setIsTeacher(sessionData.owner_id === user.id)
 
       // Join session as participant
@@ -90,17 +95,38 @@ export default function SessionPage() {
   }
 
   const loadParticipants = async () => {
-    const { data, error } = await supabase
+    // First get participants
+    const { data: participantsData, error: participantsError } = await supabase
       .from('session_participants')
-      .select(`
-        *,
-        profiles:user_id (*)
-      `)
+      .select('*')
       .eq('session_id', sessionId)
       .eq('is_active', true)
 
-    if (!error && data) {
-      setParticipants(data)
+    if (participantsError || !participantsData) {
+      console.error('Error loading participants:', participantsError)
+      return
+    }
+
+    // Then get profiles for those participants
+    const userIds = participantsData.map(p => p.user_id).filter(Boolean)
+    if (userIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds)
+
+      if (!profilesError && profilesData) {
+        // Merge the data
+        const merged = participantsData.map(participant => ({
+          ...participant,
+          profiles: sanitizeProfileData(profilesData.find(p => p.id === participant.user_id)) || null
+        }))
+        setParticipants(merged)
+      } else {
+        setParticipants(participantsData)
+      }
+    } else {
+      setParticipants(participantsData)
     }
   }
 
@@ -157,7 +183,7 @@ export default function SessionPage() {
     setShowGraphModal(false)
   }
 
-  if (loading) {
+  if (loading || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -196,7 +222,6 @@ export default function SessionPage() {
               currentTool={currentTool}
               onUpdate={handleCanvasUpdate}
               isTeacher={isTeacher}
-              settings={session?.settings}
             />
           </div>
 

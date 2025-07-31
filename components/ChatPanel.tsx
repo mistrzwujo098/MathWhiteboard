@@ -1,5 +1,7 @@
 'use client'
 
+import { sanitizeMessageData, sanitizeProfileData } from '@/utils/supabase/helpers'
+
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from '@supabase/supabase-js'
@@ -34,17 +36,39 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
   }, [messages])
 
   const loadMessages = async () => {
-    const { data, error } = await supabase
+    // First get messages
+    const { data: messagesData, error: messagesError } = await supabase
       .from('chat_messages')
-      .select(`
-        *,
-        profiles:user_id (*)
-      `)
+      .select('*')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true })
 
-    if (!error && data) {
-      setMessages(data)
+    if (messagesError || !messagesData) {
+      console.error('Error loading messages:', messagesError)
+      setLoading(false)
+      return
+    }
+
+    // Then get profiles for message authors
+    const userIds = Array.from(new Set(messagesData.map(m => m.user_id).filter(Boolean)))
+    if (userIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds)
+
+      if (!profilesError && profilesData) {
+        // Merge the data
+        const merged = messagesData.map(message => ({
+          ...sanitizeMessageData(message),
+          profiles: sanitizeProfileData(profilesData.find(p => p.id === message.user_id)) || null
+        }))
+        setMessages(merged)
+      } else {
+        setMessages(messagesData.map(sanitizeMessageData))
+      }
+    } else {
+      setMessages(messagesData.map(sanitizeMessageData))
     }
     setLoading(false)
   }
@@ -90,7 +114,8 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
 
   const getParticipantName = (userId: string) => {
     const participant = participants.find(p => p.user_id === userId)
-    return participant?.profiles?.display_name || 'Unknown User'
+    const displayName = participant?.profiles?.display_name
+    return typeof displayName === 'string' ? displayName : 'Unknown User'
   }
 
   const getParticipantRole = (userId: string) => {
@@ -137,7 +162,9 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
                 >
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="text-xs font-medium">
-                      {message.profiles?.display_name || 'Unknown'}
+                      {typeof message.profiles?.display_name === 'string' 
+                        ? message.profiles.display_name 
+                        : 'Unknown'}
                     </span>
                     {role === 'teacher' && (
                       <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded">
@@ -145,9 +172,15 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm">{message.message}</p>
+                  <p className="text-sm">
+                    {typeof message.message === 'string' 
+                      ? message.message 
+                      : JSON.stringify(message.message)}
+                  </p>
                   <p className={`text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {new Date(message.created_at).toLocaleTimeString()}
+                    {message.created_at 
+                      ? new Date(message.created_at).toLocaleTimeString()
+                      : 'Just now'}
                   </p>
                 </div>
               </div>
