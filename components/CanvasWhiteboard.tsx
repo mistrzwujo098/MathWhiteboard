@@ -35,7 +35,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
                 fabricCanvasRef.current!.add(obj)
               })
               fabricCanvasRef.current!.renderAll()
-            })
+            }, 'fabric')
             break
           case 'modify':
             const obj = fabricCanvasRef.current.getObjects().find((o: any) => o.id === data.id)
@@ -254,7 +254,9 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           break
         case 'eraser':
           canvas.isDrawingMode = true
-          canvas.freeDrawingBrush = new fabric.EraserBrush(canvas)
+          // Use PencilBrush with white color as eraser since EraserBrush might not be available
+          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
+          canvas.freeDrawingBrush.color = '#FFFFFF'
           canvas.freeDrawingBrush.width = brushWidth * 2
           break
         case 'select':
