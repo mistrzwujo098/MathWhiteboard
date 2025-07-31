@@ -2,6 +2,23 @@
 
 ## Common Issues and Solutions
 
+### 0. "Failed to load sessions" - Empty Database
+
+**Symptom**: No sessions appear in the application
+
+**Cause**: The database might be empty or RLS policies are filtering all results.
+
+**Solution**:
+1. First, check if there are any sessions in the database
+2. Create a new session using the "Create Session" button
+3. If sessions still don't appear, check the browser console for specific errors
+
+**Note about RLS Policies**: 
+The application now uses simplified RLS policies that automatically filter sessions based on user access:
+- Users see sessions they own
+- Users see sessions they participate in
+- No manual filtering in queries is needed - RLS handles it automatically
+
 ### 1. Infinite Recursion in RLS Policies
 
 **Error**: `infinite recursion detected in policy for relation "session_participants"`

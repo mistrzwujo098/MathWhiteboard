@@ -147,10 +147,10 @@ function MySessions() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      // Fetch sessions - RLS policies will automatically filter based on user access
       const { data, error } = await supabase
         .from('sessions')
         .select('*')
-        .or(`owner_id.eq.${user.id},id.in.(select session_id from session_participants where user_id = '${user.id}')`)
         .order('created_at', { ascending: false })
         .limit(5)
 
