@@ -90,17 +90,38 @@ export default function SessionPage() {
   }
 
   const loadParticipants = async () => {
-    const { data, error } = await supabase
+    // First get participants
+    const { data: participantsData, error: participantsError } = await supabase
       .from('session_participants')
-      .select(`
-        *,
-        profiles:user_id (*)
-      `)
+      .select('*')
       .eq('session_id', sessionId)
       .eq('is_active', true)
 
-    if (!error && data) {
-      setParticipants(data)
+    if (participantsError || !participantsData) {
+      console.error('Error loading participants:', participantsError)
+      return
+    }
+
+    // Then get profiles for those participants
+    const userIds = participantsData.map(p => p.user_id).filter(Boolean)
+    if (userIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds)
+
+      if (!profilesError && profilesData) {
+        // Merge the data
+        const merged = participantsData.map(participant => ({
+          ...participant,
+          profiles: profilesData.find(p => p.id === participant.user_id) || null
+        }))
+        setParticipants(merged)
+      } else {
+        setParticipants(participantsData)
+      }
+    } else {
+      setParticipants(participantsData)
     }
   }
 

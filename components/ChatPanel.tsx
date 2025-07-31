@@ -34,17 +34,39 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
   }, [messages])
 
   const loadMessages = async () => {
-    const { data, error } = await supabase
+    // First get messages
+    const { data: messagesData, error: messagesError } = await supabase
       .from('chat_messages')
-      .select(`
-        *,
-        profiles:user_id (*)
-      `)
+      .select('*')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true })
 
-    if (!error && data) {
-      setMessages(data)
+    if (messagesError || !messagesData) {
+      console.error('Error loading messages:', messagesError)
+      setLoading(false)
+      return
+    }
+
+    // Then get profiles for message authors
+    const userIds = Array.from(new Set(messagesData.map(m => m.user_id).filter(Boolean)))
+    if (userIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds)
+
+      if (!profilesError && profilesData) {
+        // Merge the data
+        const merged = messagesData.map(message => ({
+          ...message,
+          profiles: profilesData.find(p => p.id === message.user_id) || null
+        }))
+        setMessages(merged)
+      } else {
+        setMessages(messagesData)
+      }
+    } else {
+      setMessages(messagesData)
     }
     setLoading(false)
   }
