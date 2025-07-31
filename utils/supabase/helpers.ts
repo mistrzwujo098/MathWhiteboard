@@ -12,13 +12,19 @@ export function sanitizeSessionData(session: any) {
     sanitized.password = null // Or extract the actual password value if it's nested
   }
   
-  // Settings might be JSONB
-  if (sanitized.settings && typeof sanitized.settings === 'string') {
-    try {
-      sanitized.settings = JSON.parse(sanitized.settings)
-    } catch (e) {
-      console.error('Failed to parse session settings:', e)
-      sanitized.settings = {}
+  // Settings might be JSONB - ensure it's not rendered directly
+  if (sanitized.settings) {
+    if (typeof sanitized.settings === 'string') {
+      try {
+        sanitized.settings = JSON.parse(sanitized.settings)
+      } catch (e) {
+        console.error('Failed to parse session settings:', e)
+        sanitized.settings = {}
+      }
+    }
+    // Make sure settings is an object but not rendered
+    if (typeof sanitized.settings === 'object' && sanitized.settings !== null) {
+      console.log('Session settings is an object:', sanitized.settings)
     }
   }
   
