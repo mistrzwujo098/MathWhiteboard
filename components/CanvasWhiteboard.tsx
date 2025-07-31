@@ -14,6 +14,12 @@ interface CanvasWhiteboardProps {
   settings: any
 }
 
+interface FabricEvent {
+  e: Event
+  target?: fabric.Object
+  path?: fabric.Path
+}
+
 export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
   ({ sessionId, currentTool, onUpdate, isTeacher, settings }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -31,7 +37,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           case 'add':
             fabric.util.enlivenObjects([data.object], (objects: fabric.Object[]) => {
               objects.forEach((obj) => {
-                obj.set('id', data.id)
+                obj.set({ id: data.id } as any)
                 fabricCanvasRef.current!.add(obj)
               })
               fabricCanvasRef.current!.renderAll()
@@ -72,7 +78,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
               left: 100,
               top: 100,
               selectable: true,
-            })
+            } as any)
             fabricCanvasRef.current!.add(img)
             fabricCanvasRef.current!.setActiveObject(img)
             fabricCanvasRef.current!.renderAll()
@@ -94,7 +100,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           left: 50,
           top: 50,
           selectable: true,
-        })
+        } as any)
         fabricCanvasRef.current!.add(img)
         fabricCanvasRef.current!.setActiveObject(img)
         fabricCanvasRef.current!.renderAll()
@@ -149,13 +155,13 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       },
       setColor: (newColor: string) => {
         setColor(newColor)
-        if (fabricCanvasRef.current) {
+        if (fabricCanvasRef.current && fabricCanvasRef.current.freeDrawingBrush) {
           fabricCanvasRef.current.freeDrawingBrush.color = newColor
         }
       },
       setBrushWidth: (width: number) => {
         setBrushWidth(width)
-        if (fabricCanvasRef.current) {
+        if (fabricCanvasRef.current && fabricCanvasRef.current.freeDrawingBrush) {
           fabricCanvasRef.current.freeDrawingBrush.width = width
         }
       }
@@ -180,11 +186,11 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       updateCanvasTool(currentTool)
 
       // Canvas events
-      canvas.on('object:added', (e) => {
+      canvas.on('object:added', (e: FabricEvent) => {
         if (!e.target || !isDrawing) return
         const obj = e.target
         if (!obj.get('id')) {
-          obj.set('id', uuidv4())
+          obj.set({ id: uuidv4() } as any)
           onUpdate({
             type: 'add',
             id: obj.get('id'),
@@ -193,7 +199,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         }
       })
 
-      canvas.on('object:modified', (e) => {
+      canvas.on('object:modified', (e: FabricEvent) => {
         if (!e.target) return
         const obj = e.target
         onUpdate({
@@ -203,9 +209,9 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
         })
       })
 
-      canvas.on('path:created', (e) => {
+      canvas.on('path:created', (e: FabricEvent) => {
         if (!e.path) return
-        e.path.set('id', uuidv4())
+        e.path.set({ id: uuidv4() } as any)
         onUpdate({
           type: 'add',
           id: e.path.get('id'),
@@ -281,7 +287,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
     }
 
     const handleTextTool = (canvas: fabric.Canvas) => {
-      canvas.on('mouse:down', (opt) => {
+      canvas.on('mouse:down', (opt: FabricEvent) => {
         const pointer = canvas.getPointer(opt.e)
         const text = new fabric.IText('Click to edit', {
           id: uuidv4(),
@@ -289,7 +295,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           top: pointer.y,
           fontSize: fontSize,
           fill: color,
-        })
+        } as any)
         canvas.add(text)
         canvas.setActiveObject(text)
         text.enterEditing()
@@ -301,7 +307,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       let line: fabric.Line | null = null
       let isDrawing = false
 
-      canvas.on('mouse:down', (opt) => {
+      canvas.on('mouse:down', (opt: FabricEvent) => {
         isDrawing = true
         const pointer = canvas.getPointer(opt.e)
         const points = [pointer.x, pointer.y, pointer.x, pointer.y]
@@ -311,11 +317,11 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           stroke: color,
           originX: 'center',
           originY: 'center',
-        })
+        } as any)
         canvas.add(line)
       })
 
-      canvas.on('mouse:move', (opt) => {
+      canvas.on('mouse:move', (opt: FabricEvent) => {
         if (!isDrawing || !line) return
         const pointer = canvas.getPointer(opt.e)
         line.set({ x2: pointer.x, y2: pointer.y })
@@ -334,7 +340,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       let startX = 0
       let startY = 0
 
-      canvas.on('mouse:down', (opt) => {
+      canvas.on('mouse:down', (opt: FabricEvent) => {
         isDrawing = true
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
@@ -348,11 +354,11 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           fill: 'transparent',
           stroke: color,
           strokeWidth: brushWidth,
-        })
+        } as any)
         canvas.add(rect)
       })
 
-      canvas.on('mouse:move', (opt) => {
+      canvas.on('mouse:move', (opt: FabricEvent) => {
         if (!isDrawing || !rect) return
         const pointer = canvas.getPointer(opt.e)
         const width = Math.abs(pointer.x - startX)
@@ -378,7 +384,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       let startX = 0
       let startY = 0
 
-      canvas.on('mouse:down', (opt) => {
+      canvas.on('mouse:down', (opt: FabricEvent) => {
         isDrawing = true
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
@@ -391,11 +397,11 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           fill: 'transparent',
           stroke: color,
           strokeWidth: brushWidth,
-        })
+        } as any)
         canvas.add(circle)
       })
 
-      canvas.on('mouse:move', (opt) => {
+      canvas.on('mouse:move', (opt: FabricEvent) => {
         if (!isDrawing || !circle) return
         const pointer = canvas.getPointer(opt.e)
         const radius = Math.sqrt(
@@ -421,7 +427,7 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
       let startX = 0
       let startY = 0
 
-      canvas.on('mouse:down', (opt) => {
+      canvas.on('mouse:down', (opt: FabricEvent) => {
         isDrawing = true
         const pointer = canvas.getPointer(opt.e)
         startX = pointer.x
@@ -435,11 +441,11 @@ export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
           fill: 'transparent',
           stroke: color,
           strokeWidth: brushWidth,
-        })
+        } as any)
         canvas.add(triangle)
       })
 
-      canvas.on('mouse:move', (opt) => {
+      canvas.on('mouse:move', (opt: FabricEvent) => {
         if (!isDrawing || !triangle) return
         const pointer = canvas.getPointer(opt.e)
         const width = Math.abs(pointer.x - startX)
