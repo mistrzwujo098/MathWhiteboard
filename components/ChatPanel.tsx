@@ -167,7 +167,11 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm">{message.message}</p>
+                  <p className="text-sm">
+                    {typeof message.message === 'string' 
+                      ? message.message 
+                      : JSON.stringify(message.message)}
+                  </p>
                   <p className={`text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-500'}`}>
                     {new Date(message.created_at).toLocaleTimeString()}
                   </p>

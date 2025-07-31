@@ -178,7 +178,7 @@ export default function SessionPage() {
     setShowGraphModal(false)
   }
 
-  if (loading) {
+  if (loading || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
