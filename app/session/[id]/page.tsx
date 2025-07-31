@@ -1,6 +1,5 @@
 'use client'
 
-import { safeRender } from '@/utils/debug'
 import { sanitizeSessionData, sanitizeProfileData } from '@/utils/supabase/helpers'
 
 import { useEffect, useState, useRef } from 'react'
@@ -223,7 +222,6 @@ export default function SessionPage() {
               currentTool={currentTool}
               onUpdate={handleCanvasUpdate}
               isTeacher={isTeacher}
-              settings={session?.settings}
             />
           </div>
 

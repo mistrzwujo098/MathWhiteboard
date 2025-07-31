@@ -12,7 +12,6 @@ interface CanvasWhiteboardProps {
   currentTool: string
   onUpdate: (data: any) => void
   isTeacher: boolean
-  settings: any
 }
 
 interface FabricEvent {
@@ -22,7 +21,7 @@ interface FabricEvent {
 }
 
 export const CanvasWhiteboard = forwardRef<any, CanvasWhiteboardProps>(
-  ({ sessionId, currentTool, onUpdate, isTeacher, settings }, ref) => {
+  ({ sessionId, currentTool, onUpdate, isTeacher }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const fabricCanvasRef = useRef<any>(null)
     const [isDrawing, setIsDrawing] = useState(false)

@@ -1,6 +1,5 @@
 'use client'
 
-import { safeRender } from '@/utils/debug'
 import { sanitizeSessionData } from '@/utils/supabase/helpers'
 
 import { useEffect, useState } from 'react'
@@ -184,7 +183,7 @@ function MySessions() {
           onClick={() => router.push(`/session/${session.id}`)}
         >
           <div>
-            <h3 className="font-medium">{safeRender(session.name, 'Untitled')}</h3>
+            <h3 className="font-medium">{session.name || 'Untitled'}</h3>
             <p className="text-sm text-gray-500">
               Created {session.created_at ? new Date(session.created_at).toLocaleDateString() : 'Unknown'}
             </p>
