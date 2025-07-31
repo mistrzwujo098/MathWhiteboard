@@ -112,7 +112,8 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
 
   const getParticipantName = (userId: string) => {
     const participant = participants.find(p => p.user_id === userId)
-    return participant?.profiles?.display_name || 'Unknown User'
+    const displayName = participant?.profiles?.display_name
+    return typeof displayName === 'string' ? displayName : 'Unknown User'
   }
 
   const getParticipantRole = (userId: string) => {
@@ -159,7 +160,9 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
                 >
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="text-xs font-medium">
-                      {message.profiles?.display_name || 'Unknown'}
+                      {typeof message.profiles?.display_name === 'string' 
+                        ? message.profiles.display_name 
+                        : 'Unknown'}
                     </span>
                     {role === 'teacher' && (
                       <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded">
@@ -173,7 +176,9 @@ export function ChatPanel({ sessionId, user, participants }: ChatPanelProps) {
                       : JSON.stringify(message.message)}
                   </p>
                   <p className={`text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {new Date(message.created_at).toLocaleTimeString()}
+                    {message.created_at 
+                      ? new Date(message.created_at).toLocaleTimeString()
+                      : 'Just now'}
                   </p>
                 </div>
               </div>

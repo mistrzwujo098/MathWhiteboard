@@ -79,7 +79,7 @@ export function SessionHeader({ session, isTeacher, onLeave }: SessionHeaderProp
                 </div>
               </div>
               
-              {session.password && (
+              {session.password && typeof session.password === 'string' && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     <strong>Password Protected:</strong> Share the password separately
