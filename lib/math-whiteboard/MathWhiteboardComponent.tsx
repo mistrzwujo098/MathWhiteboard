@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import { MathWhiteboard } from "./MathWhiteboard";
-import { MathWhiteboardObject, EquationObject } from "../types/fabric-extensions";
+import { MathWhiteboardObject, EquationObject } from "./types/fabric-extensions";
 
 interface MathWhiteboardComponentProps {
   width?: number;

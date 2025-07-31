@@ -9,7 +9,7 @@ export type {
   DrawingPath,
   WhiteboardEvent,
   MathWhiteboardConfig
-} from "../types/fabric-extensions";
+} from "./types/fabric-extensions";
 
 // Re-export fabric types with extensions
 export { fabric } from "fabric";

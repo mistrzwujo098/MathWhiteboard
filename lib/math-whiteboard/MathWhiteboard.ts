@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { MathWhiteboardObject, EquationObject, DrawingPath, WhiteboardEvent, MathWhiteboardConfig } from '../types/fabric-extensions';
+import { MathWhiteboardObject, EquationObject, DrawingPath, WhiteboardEvent, MathWhiteboardConfig } from './types/fabric-extensions';
 
 export class MathWhiteboard {
   private canvas: fabric.Canvas;
